@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -30,6 +29,9 @@ const DocumentUploadForm = () => {
     { value: 'TMC', label: 'Revisión Tecnomecánica' },
     { value: 'SS', label: 'Seguridad Social' }
   ];
+
+  // URL del webhook de n8n
+  const N8N_WEBHOOK_URL = 'https://6b170gzb-5678.use.devtunnels.ms/webhook-test/555756a4-180f-4561-8dc8-f666cb0f0a11';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
@@ -123,16 +125,31 @@ const DocumentUploadForm = () => {
       formData.append('documentTag', documentTag === 'custom' ? customTag : documentTag);
       formData.append('submissionDate', new Date().toLocaleDateString('es-ES'));
       
-      // Simular llamada al webhook de n8n
-      console.log('Enviando a n8n webhook:', Object.fromEntries(formData.entries()));
-      
-      // Simular delay de red
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      toast({
-        title: "Documentos cargados exitosamente",
-        description: `Se cargaron ${files.length} archivo(s) correctamente`,
+      console.log('Enviando documentos a n8n webhook:', N8N_WEBHOOK_URL);
+      console.log('Datos a enviar:', {
+        fileCount: files.length,
+        selectedIdentifier: selectionType === 'placa' ? selectedPlaca : selectedCedula,
+        documentTag: documentTag === 'custom' ? customTag : documentTag,
+        submissionDate: new Date().toLocaleDateString('es-ES')
       });
+      
+      // Enviar al webhook de n8n
+      const response = await fetch(N8N_WEBHOOK_URL, {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Respuesta de n8n:', result);
+        
+        toast({
+          title: "Documentos enviados exitosamente",
+          description: `Se enviaron ${files.length} archivo(s) a Google Drive correctamente`,
+        });
+      } else {
+        throw new Error(`Error del servidor: ${response.status}`);
+      }
       
       // Limpiar formulario
       setSelectionType('');
@@ -145,10 +162,10 @@ const DocumentUploadForm = () => {
       if (fileInput) fileInput.value = '';
       
     } catch (error) {
-      console.error('Error al cargar documentos:', error);
+      console.error('Error al enviar documentos a n8n:', error);
       toast({
-        title: "Error al cargar documentos",
-        description: "Por favor, inténtelo de nuevo",
+        title: "Error al enviar documentos",
+        description: "No se pudo conectar con el sistema de almacenamiento. Por favor, inténtelo de nuevo.",
         variant: "destructive",
       });
     } finally {
@@ -303,7 +320,7 @@ const DocumentUploadForm = () => {
             {isLoading ? (
               <>
                 <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
-                Cargando Documentos...
+                Enviando a Google Drive...
               </>
             ) : (
               <>
