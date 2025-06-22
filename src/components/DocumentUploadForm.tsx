@@ -1,0 +1,321 @@
+
+import { useState } from 'react';
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import { useToast } from "@/hooks/use-toast";
+
+const DocumentUploadForm = () => {
+  const { toast } = useToast();
+  const [selectionType, setSelectionType] = useState<'placa' | 'cedula' | ''>('');
+  const [selectedPlaca, setSelectedPlaca] = useState('');
+  const [selectedCedula, setSelectedCedula] = useState('');
+  const [documentTag, setDocumentTag] = useState('');
+  const [customTag, setCustomTag] = useState('');
+  const [files, setFiles] = useState<FileList | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Mock data - En producción estos vendrían de Supabase
+  const vehiculos = ['ABC123', 'XYZ789', 'DEF456', 'GHI789', 'JKL012'];
+  const conductores = ['12345678', '87654321', '11223344', '55667788', '99887766'];
+  const etiquetasPersonalizadas = ['Inspección', 'Permisos', 'Certificados'];
+
+  const predefinedTags = [
+    { value: 'Mant', label: 'Mantenimiento' },
+    { value: 'TMC', label: 'Revisión Tecnomecánica' },
+    { value: 'SS', label: 'Seguridad Social' }
+  ];
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFiles = e.target.files;
+    if (selectedFiles) {
+      // Validar tipos de archivo
+      const validTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+      const invalidFiles = Array.from(selectedFiles).filter(file => !validTypes.includes(file.type));
+      
+      if (invalidFiles.length > 0) {
+        toast({
+          title: "Tipo de archivo no válido",
+          description: "Solo se permiten archivos JPG, PNG y PDF",
+          variant: "destructive",
+        });
+        return;
+      }
+      
+      setFiles(selectedFiles);
+    }
+  };
+
+  const generateFileName = (originalName: string): string => {
+    const today = new Date();
+    const dateStr = `${today.getDate().toString().padStart(2, '0')}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getFullYear()}`;
+    const extension = originalName.substring(originalName.lastIndexOf('.'));
+    const tag = documentTag === 'custom' ? customTag : documentTag;
+    const identifier = selectionType === 'placa' ? selectedPlaca : selectedCedula;
+    
+    return `${tag}-${identifier}-${dateStr}${extension}`;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validaciones
+    if (!selectionType) {
+      toast({
+        title: "Error de validación",
+        description: "Debe seleccionar una placa o una cédula",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!documentTag) {
+      toast({
+        title: "Error de validación",
+        description: "Debe seleccionar un tipo de documento",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (documentTag === 'custom' && !customTag.trim()) {
+      toast({
+        title: "Error de validación",
+        description: "Debe ingresar una etiqueta personalizada",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!files || files.length === 0) {
+      toast({
+        title: "Error de validación",
+        description: "Debe seleccionar al menos un archivo",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // Preparar FormData para el webhook de n8n
+      const formData = new FormData();
+      
+      // Agregar archivos con nombres generados
+      Array.from(files).forEach(file => {
+        const newFileName = generateFileName(file.name);
+        formData.append('files', file, newFileName);
+      });
+      
+      // Agregar metadata
+      if (selectionType === 'placa') {
+        formData.append('selectedPlate', selectedPlaca);
+      } else {
+        formData.append('selectedCedula', selectedCedula);
+      }
+      
+      formData.append('documentTag', documentTag === 'custom' ? customTag : documentTag);
+      formData.append('submissionDate', new Date().toLocaleDateString('es-ES'));
+      
+      // Simular llamada al webhook de n8n
+      console.log('Enviando a n8n webhook:', Object.fromEntries(formData.entries()));
+      
+      // Simular delay de red
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      toast({
+        title: "Documentos cargados exitosamente",
+        description: `Se cargaron ${files.length} archivo(s) correctamente`,
+      });
+      
+      // Limpiar formulario
+      setSelectionType('');
+      setSelectedPlaca('');
+      setSelectedCedula('');
+      setDocumentTag('');
+      setCustomTag('');
+      setFiles(null);
+      const fileInput = document.getElementById('file-upload') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+      
+    } catch (error) {
+      console.error('Error al cargar documentos:', error);
+      toast({
+        title: "Error al cargar documentos",
+        description: "Por favor, inténtelo de nuevo",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <Card className="max-w-2xl mx-auto">
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <Upload className="h-5 w-5" />
+          <span>Formulario de Carga de Documentos</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Selección de Tipo */}
+          <div className="space-y-4">
+            <Label className="text-base font-medium">Seleccione una opción:</Label>
+            <RadioGroup
+              value={selectionType}
+              onValueChange={(value: 'placa' | 'cedula') => {
+                setSelectionType(value);
+                setSelectedPlaca('');
+                setSelectedCedula('');
+              }}
+              className="grid grid-cols-2 gap-4"
+            >
+              <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-gray-50">
+                <RadioGroupItem value="placa" id="placa" />
+                <Label htmlFor="placa" className="cursor-pointer">Placa del Vehículo</Label>
+              </div>
+              <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-gray-50">
+                <RadioGroupItem value="cedula" id="cedula" />
+                <Label htmlFor="cedula" className="cursor-pointer">Cédula del Conductor</Label>
+              </div>
+            </RadioGroup>
+          </div>
+
+          {/* Selección de Placa */}
+          {selectionType === 'placa' && (
+            <div className="space-y-2">
+              <Label htmlFor="placa-select">Seleccione la Placa del Vehículo</Label>
+              <Select value={selectedPlaca} onValueChange={setSelectedPlaca}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione una placa..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {vehiculos.map(placa => (
+                    <SelectItem key={placa} value={placa}>{placa}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Selección de Cédula */}
+          {selectionType === 'cedula' && (
+            <div className="space-y-2">
+              <Label htmlFor="cedula-select">Seleccione la Cédula del Conductor</Label>
+              <Select value={selectedCedula} onValueChange={setSelectedCedula}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione una cédula..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {conductores.map(cedula => (
+                    <SelectItem key={cedula} value={cedula}>{cedula}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Tipo de Documento */}
+          <div className="space-y-2">
+            <Label>Tipo de Documento / Etiqueta</Label>
+            <Select value={documentTag} onValueChange={setDocumentTag}>
+              <SelectTrigger>
+                <SelectValue placeholder="Seleccione el tipo de documento..." />
+              </SelectTrigger>
+              <SelectContent>
+                {predefinedTags.map(tag => (
+                  <SelectItem key={tag.value} value={tag.value}>{tag.label}</SelectItem>
+                ))}
+                {etiquetasPersonalizadas.map(tag => (
+                  <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                ))}
+                <SelectItem value="custom">Otro / Etiqueta Personalizada</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Etiqueta Personalizada */}
+          {documentTag === 'custom' && (
+            <div className="space-y-2">
+              <Label htmlFor="custom-tag">Etiqueta Personalizada</Label>
+              <Input
+                id="custom-tag"
+                value={customTag}
+                onChange={(e) => setCustomTag(e.target.value)}
+                placeholder="Ingrese la etiqueta personalizada..."
+              />
+            </div>
+          )}
+
+          {/* Carga de Archivos */}
+          <div className="space-y-2">
+            <Label htmlFor="file-upload">Adjuntar Documentos</Label>
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors">
+              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <Input
+                id="file-upload"
+                type="file"
+                multiple
+                accept=".jpg,.jpeg,.png,.pdf"
+                onChange={handleFileChange}
+                className="hidden"
+              />
+              <Label htmlFor="file-upload" className="cursor-pointer">
+                <span className="text-blue-600 hover:text-blue-700 font-medium">
+                  Haga clic para seleccionar archivos
+                </span>
+                <br />
+                <span className="text-sm text-gray-500">
+                  JPG, PNG, PDF (máximo múltiples archivos)
+                </span>
+              </Label>
+            </div>
+            
+            {files && files.length > 0 && (
+              <Alert className="mt-4">
+                <CheckCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {files.length} archivo(s) seleccionado(s):
+                  {Array.from(files).map((file, index) => (
+                    <div key={index} className="text-sm text-gray-600 mt-1">
+                      • {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                    </div>
+                  ))}
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+
+          {/* Botón de Envío */}
+          <Button 
+            type="submit" 
+            className="w-full bg-blue-600 hover:bg-blue-700"
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                Cargando Documentos...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4 mr-2" />
+                Cargar Documentos
+              </>
+            )}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default DocumentUploadForm;
