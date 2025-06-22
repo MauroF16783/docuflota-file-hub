@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,9 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
+import { useVehiculos } from '@/hooks/useVehiculos';
+import { useConductores } from '@/hooks/useConductores';
+import { useTiposDocumentos } from '@/hooks/useTiposDocumentos';
 
 const DocumentUploadForm = () => {
   const { toast } = useToast();
@@ -19,16 +23,12 @@ const DocumentUploadForm = () => {
   const [files, setFiles] = useState<FileList | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mock data - En producción estos vendrían de Supabase
-  const vehiculos = ['ABC123', 'XYZ789', 'DEF456', 'GHI789', 'JKL012'];
-  const conductores = ['12345678', '87654321', '11223344', '55667788', '99887766'];
-  const etiquetasPersonalizadas = ['Inspección', 'Permisos', 'Certificados'];
-
-  const predefinedTags = [
-    { value: 'Mant', label: 'Mantenimiento' },
-    { value: 'TMC', label: 'Revisión Tecnomecánica' },
-    { value: 'SS', label: 'Seguridad Social' }
-  ];
+  // Hooks para cargar datos de Supabase
+  const { vehiculos, loading: loadingVehiculos } = useVehiculos();
+  const { conductores, loading: loadingConductores } = useConductores();
+  const { tiposDocumentos, loading: loadingTipos } = useTiposDocumentos(
+    selectionType === 'placa' ? 'vehiculo' : selectionType === 'cedula' ? 'conductor' : undefined
+  );
 
   // URL del webhook de n8n
   const N8N_WEBHOOK_URL = 'https://6b170gzb-5678.use.devtunnels.ms/webhook-test/555756a4-180f-4561-8dc8-f666cb0f0a11';
@@ -192,6 +192,7 @@ const DocumentUploadForm = () => {
                 setSelectionType(value);
                 setSelectedPlaca('');
                 setSelectedCedula('');
+                setDocumentTag(''); // Reset document tag when switching types
               }}
               className="grid grid-cols-2 gap-4"
             >
@@ -210,16 +211,22 @@ const DocumentUploadForm = () => {
           {selectionType === 'placa' && (
             <div className="space-y-2">
               <Label htmlFor="placa-select">Seleccione la Placa del Vehículo</Label>
-              <Select value={selectedPlaca} onValueChange={setSelectedPlaca}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione una placa..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {vehiculos.map(placa => (
-                    <SelectItem key={placa} value={placa}>{placa}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {loadingVehiculos ? (
+                <div className="text-sm text-gray-500">Cargando vehículos...</div>
+              ) : (
+                <Select value={selectedPlaca} onValueChange={setSelectedPlaca}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione una placa..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {vehiculos.map(vehiculo => (
+                      <SelectItem key={vehiculo.id} value={vehiculo.placa}>
+                        {vehiculo.placa} {vehiculo.marca && vehiculo.modelo && `- ${vehiculo.marca} ${vehiculo.modelo}`}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           )}
 
@@ -227,37 +234,46 @@ const DocumentUploadForm = () => {
           {selectionType === 'cedula' && (
             <div className="space-y-2">
               <Label htmlFor="cedula-select">Seleccione la Cédula del Conductor</Label>
-              <Select value={selectedCedula} onValueChange={setSelectedCedula}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccione una cédula..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {conductores.map(cedula => (
-                    <SelectItem key={cedula} value={cedula}>{cedula}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {loadingConductores ? (
+                <div className="text-sm text-gray-500">Cargando conductores...</div>
+              ) : (
+                <Select value={selectedCedula} onValueChange={setSelectedCedula}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione una cédula..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {conductores.map(conductor => (
+                      <SelectItem key={conductor.id} value={conductor.cedula}>
+                        {conductor.cedula} - {conductor.nombres} {conductor.apellidos}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             </div>
           )}
 
           {/* Tipo de Documento */}
-          <div className="space-y-2">
-            <Label>Tipo de Documento / Etiqueta</Label>
-            <Select value={documentTag} onValueChange={setDocumentTag}>
-              <SelectTrigger>
-                <SelectValue placeholder="Seleccione el tipo de documento..." />
-              </SelectTrigger>
-              <SelectContent>
-                {predefinedTags.map(tag => (
-                  <SelectItem key={tag.value} value={tag.value}>{tag.label}</SelectItem>
-                ))}
-                {etiquetasPersonalizadas.map(tag => (
-                  <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-                ))}
-                <SelectItem value="custom">Otro / Etiqueta Personalizada</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {selectionType && (
+            <div className="space-y-2">
+              <Label>Tipo de Documento / Etiqueta</Label>
+              {loadingTipos ? (
+                <div className="text-sm text-gray-500">Cargando tipos de documentos...</div>
+              ) : (
+                <Select value={documentTag} onValueChange={setDocumentTag}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccione el tipo de documento..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tiposDocumentos.map(tipo => (
+                      <SelectItem key={tipo.id} value={tipo.codigo}>{tipo.nombre}</SelectItem>
+                    ))}
+                    <SelectItem value="custom">Otro / Etiqueta Personalizada</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          )}
 
           {/* Etiqueta Personalizada */}
           {documentTag === 'custom' && (

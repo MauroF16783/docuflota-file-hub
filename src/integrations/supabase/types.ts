@@ -9,7 +9,96 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      conductores: {
+        Row: {
+          apellidos: string
+          cedula: string
+          created_at: string | null
+          email: string | null
+          id: string
+          nombres: string
+          telefono: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          apellidos: string
+          cedula: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          nombres: string
+          telefono?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          apellidos?: string
+          cedula?: string
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          nombres?: string
+          telefono?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      tipos_documentos: {
+        Row: {
+          activo: boolean | null
+          categoria: Database["public"]["Enums"]["categoria_documento"]
+          codigo: string
+          created_at: string | null
+          id: string
+          nombre: string
+        }
+        Insert: {
+          activo?: boolean | null
+          categoria: Database["public"]["Enums"]["categoria_documento"]
+          codigo: string
+          created_at?: string | null
+          id?: string
+          nombre: string
+        }
+        Update: {
+          activo?: boolean | null
+          categoria?: Database["public"]["Enums"]["categoria_documento"]
+          codigo?: string
+          created_at?: string | null
+          id?: string
+          nombre?: string
+        }
+        Relationships: []
+      }
+      vehiculos: {
+        Row: {
+          año: number | null
+          created_at: string | null
+          id: string
+          marca: string | null
+          modelo: string | null
+          placa: string
+          updated_at: string | null
+        }
+        Insert: {
+          año?: number | null
+          created_at?: string | null
+          id?: string
+          marca?: string | null
+          modelo?: string | null
+          placa: string
+          updated_at?: string | null
+        }
+        Update: {
+          año?: number | null
+          created_at?: string | null
+          id?: string
+          marca?: string | null
+          modelo?: string | null
+          placa?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -18,7 +107,17 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      categoria_documento: "vehiculo" | "conductor"
+      tipo_documento:
+        | "mantenimiento"
+        | "revision_tecnomecanica"
+        | "soat"
+        | "tarjeta_propiedad"
+        | "seguridad_social"
+        | "pase"
+        | "cedula"
+        | "cursos"
+        | "examenes_medicos"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -133,6 +232,19 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      categoria_documento: ["vehiculo", "conductor"],
+      tipo_documento: [
+        "mantenimiento",
+        "revision_tecnomecanica",
+        "soat",
+        "tarjeta_propiedad",
+        "seguridad_social",
+        "pase",
+        "cedula",
+        "cursos",
+        "examenes_medicos",
+      ],
+    },
   },
 } as const
