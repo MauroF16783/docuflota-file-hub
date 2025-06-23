@@ -8,15 +8,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Shield, Truck, Users, Tag, Plus, Trash, LogOut, AlertCircle } from 'lucide-react';
+import { Shield, Truck, Users, Tag, Plus, Trash, LogOut } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useVehiculos } from "@/hooks/useVehiculos";
 import { useConductores } from "@/hooks/useConductores";
+import { useAdminAuth, Administrador } from '@/hooks/useAdminAuth';
 import { supabase } from '@/integrations/supabase/client';
 
 const AdminPanel = () => {
   const { toast } = useToast();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const { authenticateAdmin, loading: authLoading } = useAdminAuth();
+  const [admin, setAdmin] = useState<Administrador | null>(null);
   const [loginForm, setLoginForm] = useState({ email: '', password: '' });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -56,38 +58,32 @@ const AdminPanel = () => {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    
+    const { admin: authenticatedAdmin, error } = await authenticateAdmin(
+      loginForm.email, 
+      loginForm.password
+    );
 
-    try {
-      // Simular autenticación con Supabase
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      if (loginForm.email === 'admin@trasnal.com' && loginForm.password === 'admin123') {
-        setIsAuthenticated(true);
-        toast({
-          title: "Acceso autorizado",
-          description: "Bienvenido al panel de administración",
-        });
-      } else {
-        toast({
-          title: "Error de autenticación",
-          description: "Credenciales incorrectas",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
+    if (error) {
       toast({
-        title: "Error de conexión",
-        description: "Por favor, inténtelo de nuevo",
+        title: "Error de autenticación",
+        description: error,
         variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
+      return;
+    }
+
+    if (authenticatedAdmin) {
+      setAdmin(authenticatedAdmin);
+      toast({
+        title: "Acceso autorizado",
+        description: `Bienvenido ${authenticatedAdmin.nombre || 'Administrador'}`,
+      });
     }
   };
 
   const handleLogout = () => {
-    setIsAuthenticated(false);
+    setAdmin(null);
     setLoginForm({ email: '', password: '' });
     toast({
       title: "Sesión cerrada",
@@ -403,7 +399,7 @@ const AdminPanel = () => {
         toast({
           title: "Error",
           description: "No se encontraron conductores válidos para insertar",
-          variant: "destructive",
+          variant: "destructivo",
         });
         return;
       }
@@ -482,7 +478,7 @@ const AdminPanel = () => {
   };
 
   // Pantalla de login
-  if (!isAuthenticated) {
+  if (!admin) {
     return (
       <div className="max-w-md mx-auto mt-8">
         <Card className="border-2 border-blue-200 shadow-lg">
@@ -494,13 +490,6 @@ const AdminPanel = () => {
             <p className="text-gray-600 text-sm">Ingrese sus credenciales para continuar</p>
           </CardHeader>
           <CardContent>
-            <Alert className="mb-6">
-              <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                <strong>Demo:</strong> Use admin@trasnal.com / admin123
-              </AlertDescription>
-            </Alert>
-            
             <form onSubmit={handleLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
@@ -526,8 +515,8 @@ const AdminPanel = () => {
                   required
                 />
               </div>
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
+              <Button type="submit" className="w-full" disabled={authLoading}>
+                {authLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
                     Iniciando sesión...
@@ -558,7 +547,9 @@ const AdminPanel = () => {
                 <Shield className="h-6 w-6 sm:h-8 sm:w-8" />
                 <span>Panel de Administración</span>
               </CardTitle>
-              <p className="text-blue-100 mt-2 text-sm">Gestione vehículos, conductores y etiquetas</p>
+              <p className="text-blue-100 mt-2 text-sm">
+                Bienvenido {admin.nombre || admin.email} - Gestione vehículos, conductores y etiquetas
+              </p>
             </div>
             <Button 
               variant="outline" 

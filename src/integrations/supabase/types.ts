@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      administradores: {
+        Row: {
+          activo: boolean | null
+          created_at: string | null
+          email: string
+          id: string
+          nombre: string | null
+          password_hash: string
+          updated_at: string | null
+        }
+        Insert: {
+          activo?: boolean | null
+          created_at?: string | null
+          email: string
+          id?: string
+          nombre?: string | null
+          password_hash: string
+          updated_at?: string | null
+        }
+        Update: {
+          activo?: boolean | null
+          created_at?: string | null
+          email?: string
+          id?: string
+          nombre?: string | null
+          password_hash?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       conductores: {
         Row: {
           apellidos: string
