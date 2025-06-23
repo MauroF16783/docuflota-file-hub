@@ -403,7 +403,7 @@ const AdminPanel = () => {
         toast({
           title: "Error",
           description: "No se encontraron conductores válidos para insertar",
-          variant: "destructivo",
+          variant: "destructive",
         });
         return;
       }
