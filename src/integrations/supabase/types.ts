@@ -71,7 +71,7 @@ export type Database = {
       }
       vehiculos: {
         Row: {
-          año: number | null
+          ano: number | null
           created_at: string | null
           id: string
           marca: string | null
@@ -80,7 +80,7 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
-          año?: number | null
+          ano?: number | null
           created_at?: string | null
           id?: string
           marca?: string | null
@@ -89,7 +89,7 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
-          año?: number | null
+          ano?: number | null
           created_at?: string | null
           id?: string
           marca?: string | null
