@@ -20,11 +20,18 @@ export const useVehiculos = () => {
       try {
         const { data, error } = await supabase
           .from('vehiculos')
-          .select('id, placa, marca, modelo, ano')
+          .select('id, placa, marca, modelo, año')
           .order('placa');
 
         if (error) throw error;
-        setVehiculos(data || []);
+        
+        // Map the database field 'año' to the interface field 'ano'
+        const mappedData = data?.map(vehiculo => ({
+          ...vehiculo,
+          ano: vehiculo.año
+        })) || [];
+        
+        setVehiculos(mappedData);
       } catch (err) {
         console.error('Error fetching vehiculos:', err);
         setError('Error al cargar vehículos');
