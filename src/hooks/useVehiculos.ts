@@ -7,7 +7,7 @@ export interface Vehiculo {
   placa: string;
   marca?: string;
   modelo?: string;
-  año?: number;
+  ano?: number;
 }
 
 export const useVehiculos = () => {
@@ -20,7 +20,7 @@ export const useVehiculos = () => {
       try {
         const { data, error } = await supabase
           .from('vehiculos')
-          .select('id, placa, marca, modelo, año')
+          .select('id, placa, marca, modelo, ano')
           .order('placa');
 
         if (error) throw error;
