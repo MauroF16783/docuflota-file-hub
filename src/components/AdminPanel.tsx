@@ -50,9 +50,9 @@ const AdminPanel = () => {
 
   const [newEtiqueta, setNewEtiqueta] = useState({ nombre: '', tipo: '' });
   
-  // Estados para inserción en lotes
-  const [batchPlacas, setBatchPlacas] = useState('');
-  const [batchCedulas, setBatchCedulas] = useState('');
+  // Estados para inserción en lotes - actualizados para información completa
+  const [batchVehiculos, setBatchVehiculos] = useState('');
+  const [batchConductores, setBatchConductores] = useState('');
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -258,6 +258,185 @@ const AdminPanel = () => {
     }
   };
 
+  // Función actualizada para inserción en lote de vehículos completos
+  const addBatchVehiculos = async () => {
+    if (!batchVehiculos.trim()) {
+      toast({
+        title: "Error",
+        description: "Por favor ingrese los datos de los vehículos",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const lines = batchVehiculos.trim().split('\n').filter(line => line.trim());
+      const vehiculosData = [];
+      const errors = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        // Formato esperado: PLACA,MARCA,MODELO,AÑO o solo PLACA
+        const parts = line.split(',').map(part => part.trim());
+        
+        if (parts.length === 0 || !parts[0]) {
+          errors.push(`Línea ${i + 1}: Placa requerida`);
+          continue;
+        }
+
+        const vehiculoData = {
+          placa: parts[0].toUpperCase(),
+          marca: parts[1] || null,
+          modelo: parts[2] || null,
+          ano: parts[3] ? parseInt(parts[3]) : null
+        };
+
+        // Validar año si se proporciona
+        if (parts[3] && (isNaN(vehiculoData.ano!) || vehiculoData.ano! < 1900 || vehiculoData.ano! > new Date().getFullYear() + 1)) {
+          errors.push(`Línea ${i + 1}: Año inválido (${parts[3]})`);
+          continue;
+        }
+
+        vehiculosData.push(vehiculoData);
+      }
+
+      if (errors.length > 0) {
+        toast({
+          title: "Errores encontrados",
+          description: errors.join(', '),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (vehiculosData.length === 0) {
+        toast({
+          title: "Error",
+          description: "No se encontraron vehículos válidos para insertar",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('vehiculos')
+        .insert(vehiculosData);
+
+      if (error) {
+        console.error('Error inserting batch vehiculos:', error);
+        toast({
+          title: "Error",
+          description: "Error al guardar los vehículos: " + error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setBatchVehiculos('');
+      toast({
+        title: "Vehículos agregados",
+        description: `${vehiculosData.length} vehículos agregados exitosamente`,
+      });
+    } catch (err) {
+      console.error('Error:', err);
+      toast({
+        title: "Error",
+        description: "Error inesperado al procesar los vehículos",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Función actualizada para inserción en lote de conductores completos
+  const addBatchConductores = async () => {
+    if (!batchConductores.trim()) {
+      toast({
+        title: "Error",
+        description: "Por favor ingrese los datos de los conductores",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const lines = batchConductores.trim().split('\n').filter(line => line.trim());
+      const conductoresData = [];
+      const errors = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+        // Formato esperado: CEDULA,NOMBRES,APELLIDOS,TELEFONO,EMAIL
+        const parts = line.split(',').map(part => part.trim());
+        
+        if (parts.length < 3 || !parts[0] || !parts[1] || !parts[2]) {
+          errors.push(`Línea ${i + 1}: Cédula, nombres y apellidos son requeridos`);
+          continue;
+        }
+
+        const conductorData = {
+          cedula: parts[0],
+          nombres: parts[1],
+          apellidos: parts[2],
+          telefono: parts[3] || null,
+          email: parts[4] || null
+        };
+
+        // Validar email si se proporciona
+        if (parts[4] && parts[4].includes('@') === false) {
+          errors.push(`Línea ${i + 1}: Email inválido (${parts[4]})`);
+          continue;
+        }
+
+        conductoresData.push(conductorData);
+      }
+
+      if (errors.length > 0) {
+        toast({
+          title: "Errores encontrados",
+          description: errors.join(', '),
+          variant: "destructive",
+        });
+        return;
+      }
+
+      if (conductoresData.length === 0) {
+        toast({
+          title: "Error",
+          description: "No se encontraron conductores válidos para insertar",
+          variant: "destructivo",
+        });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('conductores')
+        .insert(conductoresData);
+
+      if (error) {
+        console.error('Error inserting batch conductores:', error);
+        toast({
+          title: "Error",
+          description: "Error al guardar los conductores: " + error.message,
+          variant: "destructive",
+        });
+        return;
+      }
+
+      setBatchConductores('');
+      toast({
+        title: "Conductores agregados",
+        description: `${conductoresData.length} conductores agregados exitosamente`,
+      });
+    } catch (err) {
+      console.error('Error:', err);
+      toast({
+        title: "Error",
+        description: "Error inesperado al procesar los conductores",
+        variant: "destructive",
+      });
+    }
+  };
+
   const addEtiqueta = () => {
     if (!newEtiqueta.nombre.trim() || !newEtiqueta.tipo) {
       toast({
@@ -300,21 +479,6 @@ const AdminPanel = () => {
         description: `Etiqueta "${etiqueta.nombre}" eliminada exitosamente`,
       });
     }
-  };
-
-  // Funciones para inserción en lotes (simplificadas para ahora)
-  const addBatchPlacas = () => {
-    toast({
-      title: "Funcionalidad en desarrollo",
-      description: "La inserción en lotes será implementada próximamente",
-    });
-  };
-
-  const addBatchCedulas = () => {
-    toast({
-      title: "Funcionalidad en desarrollo", 
-      description: "La inserción en lotes será implementada próximamente",
-    });
   };
 
   // Pantalla de login
@@ -485,22 +649,28 @@ const AdminPanel = () => {
                 </Button>
               </div>
 
-              {/* Agregar placas en lote */}
+              {/* Agregar vehículos en lote - actualizado */}
               <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-200">
-                <Label className="text-sm font-medium mb-2 block">Agregar placas en lote</Label>
+                <Label className="text-sm font-medium mb-2 block">Agregar vehículos en lote</Label>
+                <div className="mb-3 text-xs text-gray-600 bg-gray-50 p-2 rounded border">
+                  <strong>Formato:</strong> PLACA,MARCA,MODELO,AÑO (una por línea)<br/>
+                  <strong>Ejemplo:</strong><br/>
+                  ABC123,Toyota,Corolla,2023<br/>
+                  XYZ789,Honda,Civic,2022<br/>
+                  DEF456,Chevrolet,Spark,2021<br/>
+                  <em>Nota: Solo la placa es obligatoria. Los demás campos pueden omitirse.</em>
+                </div>
                 <Textarea
-                  value={batchPlacas}
-                  onChange={(e) => setBatchPlacas(e.target.value)}
-                  placeholder="ABC123, XYZ789, DEF456
-O una por línea:
-ABC123
-XYZ789
-DEF456"
-                  className="w-full p-3 border-2 border-gray-300 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 rounded-md resize-none h-24 text-sm"
+                  value={batchVehiculos}
+                  onChange={(e) => setBatchVehiculos(e.target.value)}
+                  placeholder="ABC123,Toyota,Corolla,2023
+XYZ789,Honda,Civic,2022
+DEF456,Chevrolet,Spark,2021"
+                  className="w-full p-3 border-2 border-gray-300 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 rounded-md resize-none h-32 text-sm font-mono"
                 />
-                <Button onClick={addBatchPlacas} size="sm" className="mt-2 w-full sm:w-auto">
+                <Button onClick={addBatchVehiculos} size="sm" className="mt-2 w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
-                  Agregar Lote de Placas
+                  Agregar Lote de Vehículos
                 </Button>
               </div>
               
@@ -619,22 +789,27 @@ DEF456"
                 </Button>
               </div>
 
-              {/* Agregar cédulas en lote */}
+              {/* Agregar conductores en lote - actualizado */}
               <div className="bg-yellow-50 p-4 rounded-lg border-2 border-yellow-200">
-                <Label className="text-sm font-medium mb-2 block">Agregar cédulas en lote</Label>
+                <Label className="text-sm font-medium mb-2 block">Agregar conductores en lote</Label>
+                <div className="mb-3 text-xs text-gray-600 bg-gray-50 p-2 rounded border">
+                  <strong>Formato:</strong> CEDULA,NOMBRES,APELLIDOS,TELEFONO,EMAIL (una por línea)<br/>
+                  <strong>Ejemplo:</strong><br/>
+                  12345678,Juan Carlos,Pérez García,3001234567,juan@email.com<br/>
+                  87654321,María,López Martínez,3007654321,maria@email.com<br/>
+                  <em>Nota: Cédula, nombres y apellidos son obligatorios.</em>
+                </div>
                 <Textarea
-                  value={batchCedulas}
-                  onChange={(e) => setBatchCedulas(e.target.value)}
-                  placeholder="12345678, 87654321, 11223344
-O una por línea:
-12345678
-87654321
-11223344"
-                  className="w-full p-3 border-2 border-gray-300 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 rounded-md resize-none h-24 text-sm"
+                  value={batchConductores}
+                  onChange={(e) => setBatchConductores(e.target.value)}
+                  placeholder="12345678,Juan Carlos,Pérez García,3001234567,juan@email.com
+87654321,María,López Martínez,3007654321,maria@email.com
+11223344,Carlos,Rodríguez,3009876543,carlos@email.com"
+                  className="w-full p-3 border-2 border-gray-300 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 rounded-md resize-none h-32 text-sm font-mono"
                 />
-                <Button onClick={addBatchCedulas} size="sm" className="mt-2 w-full sm:w-auto">
+                <Button onClick={addBatchConductores} size="sm" className="mt-2 w-full sm:w-auto">
                   <Plus className="h-4 w-4 mr-2" />
-                  Agregar Lote de Cédulas
+                  Agregar Lote de Conductores
                 </Button>
               </div>
               
