@@ -16,7 +16,7 @@ const Index = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="p-2 rounded-lg" style={{ backgroundColor: '#28AE7A' }}>
+              <div className="p-2 rounded-lg bg-white border border-gray-200">
                 <img 
                   src="/lovable-uploads/7a099f22-cf42-49a8-8bf6-97d3b20b2bbb.png" 
                   alt="DEPARTOUR Logo" 
