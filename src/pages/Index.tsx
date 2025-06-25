@@ -18,9 +18,9 @@ const Index = () => {
             <div className="flex items-center space-x-3">
               <div className="p-2 rounded-lg" style={{ backgroundColor: '#28AE7A' }}>
                 <img 
-                  src="/lovable-uploads/bd4a3218-ceac-4e16-902a-260cb4ecdae9.png" 
+                  src="/lovable-uploads/7a099f22-cf42-49a8-8bf6-97d3b20b2bbb.png" 
                   alt="DEPARTOUR Logo" 
-                  className="h-6 w-6 object-contain filter brightness-0 invert"
+                  className="h-6 w-6 object-contain"
                 />
               </div>
               <div>
