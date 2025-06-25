@@ -329,7 +329,8 @@ const DocumentUploadForm = () => {
           {/* Botón de Envío */}
           <Button 
             type="submit" 
-            className="w-full bg-blue-600 hover:bg-blue-700"
+            className="w-full text-white hover:opacity-90"
+            style={{ backgroundColor: '#28AE7A' }}
             disabled={isLoading}
           >
             {isLoading ? (

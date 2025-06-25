@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Truck, FileText, Shield } from 'lucide-react';
+import { FileText, Shield } from 'lucide-react';
 import DocumentUploadForm from '@/components/DocumentUploadForm';
 import AdminPanel from '@/components/AdminPanel';
 
@@ -10,18 +10,22 @@ const Index = () => {
   const [currentView, setCurrentView] = useState<'upload' | 'admin'>('upload');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-green-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center space-x-3">
-              <div className="bg-blue-600 p-2 rounded-lg">
-                <Truck className="h-6 w-6 text-white" />
+              <div className="p-2 rounded-lg" style={{ backgroundColor: '#28AE7A' }}>
+                <img 
+                  src="/lovable-uploads/bd4a3218-ceac-4e16-902a-260cb4ecdae9.png" 
+                  alt="DEPARTOUR Logo" 
+                  className="h-6 w-6 object-contain filter brightness-0 invert"
+                />
               </div>
               <div>
-                <h1 className="text-lg sm:text-xl font-bold text-gray-900">Control DocuFlota</h1>
-                <p className="text-xs sm:text-sm text-gray-500">TRASNAL SA</p>
+                <h1 className="text-lg sm:text-xl font-bold text-gray-900">DEPARTOUR</h1>
+                <p className="text-xs sm:text-sm text-gray-500">Envío de documentos</p>
               </div>
             </div>
             <nav className="flex space-x-1 sm:space-x-2">
@@ -30,6 +34,7 @@ const Index = () => {
                 onClick={() => setCurrentView('upload')}
                 size="sm"
                 className="text-xs sm:text-sm"
+                style={currentView === 'upload' ? { backgroundColor: '#28AE7A', borderColor: '#28AE7A' } : {}}
               >
                 <FileText className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Cargar</span>
@@ -39,6 +44,7 @@ const Index = () => {
                 onClick={() => setCurrentView('admin')}
                 size="sm"
                 className="text-xs sm:text-sm"
+                style={currentView === 'admin' ? { backgroundColor: '#28AE7A', borderColor: '#28AE7A' } : {}}
               >
                 <Shield className="h-4 w-4 sm:mr-2" />
                 <span className="hidden sm:inline">Admin</span>
@@ -53,13 +59,13 @@ const Index = () => {
         {currentView === 'upload' ? (
           <div className="space-y-4 sm:space-y-6">
             {/* Welcome Section - Optimizado para móvil */}
-            <Card className="bg-gradient-to-r from-blue-600 to-blue-700 text-white">
+            <Card className="text-white" style={{ background: 'linear-gradient(to right, #28AE7A, #22975E)' }}>
               <CardHeader className="pb-4">
                 <CardTitle className="text-xl sm:text-2xl flex items-center space-x-2 sm:space-x-3">
                   <FileText className="h-6 w-6 sm:h-8 sm:w-8" />
                   <span>Carga de Documentos</span>
                 </CardTitle>
-                <CardDescription className="text-blue-100 text-sm">
+                <CardDescription className="text-green-100 text-sm">
                   Sube documentos de vehículos y conductores
                 </CardDescription>
               </CardHeader>
