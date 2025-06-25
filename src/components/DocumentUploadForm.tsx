@@ -1,22 +1,20 @@
+
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import { Upload, FileText, CheckCircle } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useVehiculos } from '@/hooks/useVehiculos';
-import { useConductores } from '@/hooks/useConductores';
 import { useTiposDocumentos } from '@/hooks/useTiposDocumentos';
 
 const DocumentUploadForm = () => {
   const { toast } = useToast();
-  const [selectionType, setSelectionType] = useState<'placa' | 'cedula' | ''>('');
   const [selectedPlaca, setSelectedPlaca] = useState('');
-  const [selectedCedula, setSelectedCedula] = useState('');
+  const [placaSearch, setPlacaSearch] = useState('');
   const [documentTag, setDocumentTag] = useState('');
   const [customTag, setCustomTag] = useState('');
   const [files, setFiles] = useState<FileList | null>(null);
@@ -24,9 +22,16 @@ const DocumentUploadForm = () => {
 
   // Hooks para cargar datos de Supabase
   const { vehiculos, loading: loadingVehiculos } = useVehiculos();
-  const { conductores, loading: loadingConductores } = useConductores();
-  const { tiposDocumentos, loading: loadingTipos } = useTiposDocumentos(
-    selectionType === 'placa' ? 'vehiculo' : selectionType === 'cedula' ? 'conductor' : undefined
+  const { tiposDocumentos: tiposVehiculo, loading: loadingTiposVehiculo } = useTiposDocumentos('vehiculo');
+  const { tiposDocumentos: tiposConductor, loading: loadingTiposConductor } = useTiposDocumentos('conductor');
+
+  // Combinar todos los tipos de documentos
+  const allTiposDocumentos = [...tiposVehiculo, ...tiposConductor];
+  const loadingTipos = loadingTiposVehiculo || loadingTiposConductor;
+
+  // Filtrar vehículos por búsqueda
+  const filteredVehiculos = vehiculos.filter(vehiculo => 
+    vehiculo.placa.toLowerCase().includes(placaSearch.toLowerCase())
   );
 
   // URL del webhook de n8n actualizada
@@ -57,19 +62,18 @@ const DocumentUploadForm = () => {
     const dateStr = `${today.getDate().toString().padStart(2, '0')}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getFullYear()}`;
     const extension = originalName.substring(originalName.lastIndexOf('.'));
     const tag = documentTag === 'custom' ? customTag : documentTag;
-    const identifier = selectionType === 'placa' ? selectedPlaca : selectedCedula;
     
-    return `${tag}-${identifier}-${dateStr}${extension}`;
+    return `${tag}-${selectedPlaca}-${dateStr}${extension}`;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     // Validaciones
-    if (!selectionType) {
+    if (!selectedPlaca) {
       toast({
         title: "Error de validación",
-        description: "Debe seleccionar una placa o una cédula",
+        description: "Debe seleccionar una placa",
         variant: "destructive",
       });
       return;
@@ -115,19 +119,14 @@ const DocumentUploadForm = () => {
       });
       
       // Agregar metadata
-      if (selectionType === 'placa') {
-        formData.append('selectedPlate', selectedPlaca);
-      } else {
-        formData.append('selectedCedula', selectedCedula);
-      }
-      
+      formData.append('selectedPlate', selectedPlaca);
       formData.append('documentTag', documentTag === 'custom' ? customTag : documentTag);
       formData.append('submissionDate', new Date().toLocaleDateString('es-ES'));
       
       console.log('Enviando documentos a n8n webhook:', N8N_WEBHOOK_URL);
       console.log('Datos a enviar:', {
         fileCount: files.length,
-        selectedIdentifier: selectionType === 'placa' ? selectedPlaca : selectedCedula,
+        selectedPlate: selectedPlaca,
         documentTag: documentTag === 'custom' ? customTag : documentTag,
         submissionDate: new Date().toLocaleDateString('es-ES')
       });
@@ -151,9 +150,8 @@ const DocumentUploadForm = () => {
       }
       
       // Limpiar formulario
-      setSelectionType('');
       setSelectedPlaca('');
-      setSelectedCedula('');
+      setPlacaSearch('');
       setDocumentTag('');
       setCustomTag('');
       setFiles(null);
@@ -172,6 +170,11 @@ const DocumentUploadForm = () => {
     }
   };
 
+  const handlePlacaSelect = (placa: string) => {
+    setSelectedPlaca(placa);
+    setPlacaSearch(placa); // Actualizar el campo de búsqueda con la placa seleccionada
+  };
+
   return (
     <Card className="max-w-2xl mx-auto">
       <CardHeader>
@@ -182,78 +185,42 @@ const DocumentUploadForm = () => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Selección de Tipo */}
-          <div className="space-y-4">
-            <Label className="text-base font-medium">Seleccione una opción:</Label>
-            <RadioGroup
-              value={selectionType}
-              onValueChange={(value: 'placa' | 'cedula') => {
-                setSelectionType(value);
-                setSelectedPlaca('');
-                setSelectedCedula('');
-                setDocumentTag(''); // Reset document tag when switching types
-              }}
-              className="grid grid-cols-2 gap-4"
-            >
-              <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-gray-50">
-                <RadioGroupItem value="placa" id="placa" />
-                <Label htmlFor="placa" className="cursor-pointer">Placa del Vehículo</Label>
-              </div>
-              <div className="flex items-center space-x-2 border rounded-lg p-4 hover:bg-gray-50">
-                <RadioGroupItem value="cedula" id="cedula" />
-                <Label htmlFor="cedula" className="cursor-pointer">Cédula del Conductor</Label>
-              </div>
-            </RadioGroup>
-          </div>
-
-          {/* Selección de Placa */}
-          {selectionType === 'placa' && (
-            <div className="space-y-2">
-              <Label htmlFor="placa-select">Seleccione la Placa del Vehículo</Label>
-              {loadingVehiculos ? (
-                <div className="text-sm text-gray-500">Cargando vehículos...</div>
-              ) : (
-                <Select value={selectedPlaca} onValueChange={setSelectedPlaca}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccione una placa..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {vehiculos.map(vehiculo => (
+          {/* Búsqueda y Selección de Placa */}
+          <div className="space-y-2">
+            <Label htmlFor="placa-search">Buscar y Seleccionar Placa del Vehículo</Label>
+            <Input
+              id="placa-search"
+              value={placaSearch}
+              onChange={(e) => setPlacaSearch(e.target.value)}
+              placeholder="Escriba para buscar una placa..."
+              className="mb-2"
+            />
+            {loadingVehiculos ? (
+              <div className="text-sm text-gray-500">Cargando vehículos...</div>
+            ) : (
+              <Select value={selectedPlaca} onValueChange={handlePlacaSelect}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccione una placa..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredVehiculos.length > 0 ? (
+                    filteredVehiculos.map(vehiculo => (
                       <SelectItem key={vehiculo.id} value={vehiculo.placa}>
                         {vehiculo.placa} {vehiculo.marca && vehiculo.modelo && `- ${vehiculo.marca} ${vehiculo.modelo}`}
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-          )}
-
-          {/* Selección de Cédula */}
-          {selectionType === 'cedula' && (
-            <div className="space-y-2">
-              <Label htmlFor="cedula-select">Seleccione la Cédula del Conductor</Label>
-              {loadingConductores ? (
-                <div className="text-sm text-gray-500">Cargando conductores...</div>
-              ) : (
-                <Select value={selectedCedula} onValueChange={setSelectedCedula}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Seleccione una cédula..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {conductores.map(conductor => (
-                      <SelectItem key={conductor.id} value={conductor.cedula}>
-                        {conductor.cedula} - {conductor.nombres} {conductor.apellidos}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-          )}
+                    ))
+                  ) : (
+                    <SelectItem value="" disabled>
+                      No se encontraron placas que coincidan
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            )}
+          </div>
 
           {/* Tipo de Documento */}
-          {selectionType && (
+          {selectedPlaca && (
             <div className="space-y-2">
               <Label>Tipo de Documento / Etiqueta</Label>
               {loadingTipos ? (
@@ -264,7 +231,7 @@ const DocumentUploadForm = () => {
                     <SelectValue placeholder="Seleccione el tipo de documento..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {tiposDocumentos.map(tipo => (
+                    {allTiposDocumentos.map(tipo => (
                       <SelectItem key={tipo.id} value={tipo.codigo}>{tipo.nombre}</SelectItem>
                     ))}
                     <SelectItem value="custom">Otro / Etiqueta Personalizada</SelectItem>
