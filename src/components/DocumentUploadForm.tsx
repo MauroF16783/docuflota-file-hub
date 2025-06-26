@@ -1,12 +1,12 @@
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Upload, FileText, CheckCircle } from 'lucide-react';
+import { Upload, FileText, CheckCircle, Camera } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { useVehiculos } from '@/hooks/useVehiculos';
 import { useTiposDocumentos } from '@/hooks/useTiposDocumentos';
@@ -18,7 +18,10 @@ const DocumentUploadForm = () => {
   const [documentTag, setDocumentTag] = useState('');
   const [customTag, setCustomTag] = useState('');
   const [files, setFiles] = useState<FileList | null>(null);
+  const [capturedFiles, setCapturedFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   // Hooks para cargar datos de Supabase
   const { vehiculos, loading: loadingVehiculos } = useVehiculos();
@@ -34,8 +37,8 @@ const DocumentUploadForm = () => {
     vehiculo.placa.toLowerCase().includes(placaSearch.toLowerCase())
   );
 
-  // URL del webhook de n8n actualizada
-  const N8N_WEBHOOK_URL = 'https://6b170gzb-5678.use.devtunnels.ms/webhook/555756a4-180f-4561-8dc8-f666cb0f0a11';
+  // URL del webhook actualizada para pruebas
+  const N8N_WEBHOOK_URL = 'https://6b170gzb-5678.use.devtunnels.ms/webhook-test/555756a4-180f-4561-8dc8-f666cb0f0a11';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
@@ -57,6 +60,25 @@ const DocumentUploadForm = () => {
     }
   };
 
+  const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const capturedFiles = e.target.files;
+    if (capturedFiles) {
+      const newFiles = Array.from(capturedFiles);
+      setCapturedFiles(prev => [...prev, ...newFiles]);
+      
+      toast({
+        title: "Foto capturada",
+        description: `Se capturó ${newFiles.length} foto(s) correctamente`,
+      });
+    }
+  };
+
+  const openCamera = () => {
+    if (cameraInputRef.current) {
+      cameraInputRef.current.click();
+    }
+  };
+
   const generateFileName = (originalName: string): string => {
     const today = new Date();
     const dateStr = `${today.getDate().toString().padStart(2, '0')}-${(today.getMonth() + 1).toString().padStart(2, '0')}-${today.getFullYear()}`;
@@ -66,8 +88,15 @@ const DocumentUploadForm = () => {
     return `${tag}-${selectedPlaca}-${dateStr}${extension}`;
   };
 
+  const getAllFiles = (): File[] => {
+    const regularFiles = files ? Array.from(files) : [];
+    return [...regularFiles, ...capturedFiles];
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    const allFiles = getAllFiles();
     
     // Validaciones
     if (!selectedPlaca) {
@@ -97,10 +126,10 @@ const DocumentUploadForm = () => {
       return;
     }
     
-    if (!files || files.length === 0) {
+    if (allFiles.length === 0) {
       toast({
         title: "Error de validación",
-        description: "Debe seleccionar al menos un archivo",
+        description: "Debe seleccionar al menos un archivo o tomar una foto",
         variant: "destructive",
       });
       return;
@@ -113,7 +142,7 @@ const DocumentUploadForm = () => {
       const formData = new FormData();
       
       // Agregar archivos con nombres generados
-      Array.from(files).forEach(file => {
+      allFiles.forEach(file => {
         const newFileName = generateFileName(file.name);
         formData.append('files', file, newFileName);
       });
@@ -125,7 +154,7 @@ const DocumentUploadForm = () => {
       
       console.log('Enviando documentos a n8n webhook:', N8N_WEBHOOK_URL);
       console.log('Datos a enviar:', {
-        fileCount: files.length,
+        fileCount: allFiles.length,
         selectedPlate: selectedPlaca,
         documentTag: documentTag === 'custom' ? customTag : documentTag,
         submissionDate: new Date().toLocaleDateString('es-ES')
@@ -143,7 +172,7 @@ const DocumentUploadForm = () => {
         
         toast({
           title: "Documentos enviados exitosamente",
-          description: `Se enviaron ${files.length} archivo(s) a Google Drive correctamente`,
+          description: `Se enviaron ${allFiles.length} archivo(s) a Google Drive correctamente`,
         });
       } else {
         throw new Error(`Error del servidor: ${response.status}`);
@@ -155,8 +184,9 @@ const DocumentUploadForm = () => {
       setDocumentTag('');
       setCustomTag('');
       setFiles(null);
-      const fileInput = document.getElementById('file-upload') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
+      setCapturedFiles([]);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      if (cameraInputRef.current) cameraInputRef.current.value = '';
       
     } catch (error) {
       console.error('Error al enviar documentos a n8n:', error);
@@ -173,6 +203,24 @@ const DocumentUploadForm = () => {
   const handlePlacaSelect = (placa: string) => {
     setSelectedPlaca(placa);
     setPlacaSearch(placa); // Actualizar el campo de búsqueda con la placa seleccionada
+  };
+
+  const removeFile = (index: number, isCapture: boolean = false) => {
+    if (isCapture) {
+      setCapturedFiles(prev => prev.filter((_, i) => i !== index));
+    } else {
+      // Para archivos seleccionados, necesitamos recrear el FileList
+      if (files) {
+        const dt = new DataTransfer();
+        Array.from(files).forEach((file, i) => {
+          if (i !== index) dt.items.add(file);
+        });
+        setFiles(dt.files.length > 0 ? dt.files : null);
+        if (fileInputRef.current) {
+          fileInputRef.current.files = dt.files;
+        }
+      }
+    }
   };
 
   return (
@@ -254,40 +302,108 @@ const DocumentUploadForm = () => {
             </div>
           )}
 
-          {/* Carga de Archivos */}
-          <div className="space-y-2">
-            <Label htmlFor="file-upload">Adjuntar Documentos</Label>
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-blue-500 transition-colors">
-              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <Input
-                id="file-upload"
-                type="file"
-                multiple
-                accept=".jpg,.jpeg,.png,.pdf"
-                onChange={handleFileChange}
-                className="hidden"
-              />
-              <Label htmlFor="file-upload" className="cursor-pointer">
-                <span className="text-blue-600 hover:text-blue-700 font-medium">
-                  Haga clic para seleccionar archivos
-                </span>
+          {/* Carga de Archivos y Cámara */}
+          <div className="space-y-4">
+            <Label>Adjuntar Documentos</Label>
+            
+            {/* Botones de acción */}
+            <div className="flex flex-col sm:flex-row gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => fileInputRef.current?.click()}
+                className="flex-1"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Seleccionar Archivos
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={openCamera}
+                className="flex-1"
+                style={{ borderColor: '#28AE7A', color: '#28AE7A' }}
+              >
+                <Camera className="h-4 w-4 mr-2" />
+                Tomar Foto
+              </Button>
+            </div>
+
+            {/* Input de archivos oculto */}
+            <Input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              accept=".jpg,.jpeg,.png,.pdf"
+              onChange={handleFileChange}
+              className="hidden"
+            />
+
+            {/* Input de cámara oculto */}
+            <Input
+              ref={cameraInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleCameraCapture}
+              className="hidden"
+            />
+
+            {/* Zona de información */}
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+              <div className="flex justify-center space-x-4 mb-4">
+                <FileText className="h-8 w-8 text-gray-400" />
+                <Camera className="h-8 w-8 text-gray-400" />
+              </div>
+              <p className="text-sm text-gray-500">
+                Seleccione archivos desde su dispositivo o tome fotos con la cámara
                 <br />
-                <span className="text-sm text-gray-500">
-                  JPG, PNG, PDF (máximo múltiples archivos)
-                </span>
-              </Label>
+                <span className="text-xs">JPG, PNG, PDF - Múltiples archivos permitidos</span>
+              </p>
             </div>
             
-            {files && files.length > 0 && (
-              <Alert className="mt-4">
+            {/* Lista de archivos seleccionados y fotos capturadas */}
+            {(files?.length || capturedFiles.length > 0) && (
+              <Alert>
                 <CheckCircle className="h-4 w-4" />
                 <AlertDescription>
-                  {files.length} archivo(s) seleccionado(s):
-                  {Array.from(files).map((file, index) => (
-                    <div key={index} className="text-sm text-gray-600 mt-1">
-                      • {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                  <div className="space-y-2">
+                    <div className="font-medium">
+                      {(files?.length || 0) + capturedFiles.length} archivo(s) seleccionado(s):
                     </div>
-                  ))}
+                    
+                    {/* Archivos seleccionados */}
+                    {files && Array.from(files).map((file, index) => (
+                      <div key={`file-${index}`} className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                        <span>📄 {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFile(index, false)}
+                          className="text-red-500 hover:text-red-700 p-1 h-auto"
+                        >
+                          ✕
+                        </Button>
+                      </div>
+                    ))}
+                    
+                    {/* Fotos capturadas */}
+                    {capturedFiles.map((file, index) => (
+                      <div key={`capture-${index}`} className="flex items-center justify-between text-sm text-gray-600 bg-green-50 p-2 rounded">
+                        <span>📷 {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeFile(index, true)}
+                          className="text-red-500 hover:text-red-700 p-1 h-auto"
+                        >
+                          ✕
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
                 </AlertDescription>
               </Alert>
             )}
