@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -37,8 +36,8 @@ const DocumentUploadForm = () => {
     vehiculo.placa.toLowerCase().includes(placaSearch.toLowerCase())
   );
 
-  // URL del webhook actualizada para pruebas
-  const N8N_WEBHOOK_URL = 'https://6b170gzb-5678.use.devtunnels.ms/webhook-test/555756a4-180f-4561-8dc8-f666cb0f0a11';
+  // URL del webhook actualizada
+  const N8N_WEBHOOK_URL = 'https://6b170gzb-5678.use.devtunnels.ms/webhook/555756a4-180f-4561-8dc8-f666cb0f0a11';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
