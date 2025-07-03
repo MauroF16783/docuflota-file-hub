@@ -18,9 +18,9 @@ const Index = () => {
             <div className="flex items-center space-x-3">
               <div className="p-2 rounded-lg bg-white border border-gray-200">
                 <img 
-                  src="/lovable-uploads/6273ddb7-5fcf-4132-9b62-96f8fac7b8ce.png" 
+                  src="/lovable-uploads/bb7f33dd-a8e2-4412-a531-bfc85e91d097.png" 
                   alt="TRASNAL Logo" 
-                  className="h-6 w-6 object-contain"
+                  className="h-8 w-8 object-contain"
                 />
               </div>
               <div>
