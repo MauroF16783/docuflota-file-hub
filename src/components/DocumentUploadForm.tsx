@@ -201,14 +201,13 @@ const DocumentUploadForm = () => {
 
   const handlePlacaSelect = (placa: string) => {
     setSelectedPlaca(placa);
-    setPlacaSearch(placa); // Actualizar el campo de búsqueda con la placa seleccionada
+    setPlacaSearch(placa);
   };
 
   const removeFile = (index: number, isCapture: boolean = false) => {
     if (isCapture) {
       setCapturedFiles(prev => prev.filter((_, i) => i !== index));
     } else {
-      // Para archivos seleccionados, necesitamos recrear el FileList
       if (files) {
         const dt = new DataTransfer();
         Array.from(files).forEach((file, i) => {
@@ -321,7 +320,7 @@ const DocumentUploadForm = () => {
                 variant="outline"
                 onClick={openCamera}
                 className="flex-1"
-                style={{ borderColor: '#28AE7A', color: '#28AE7A' }}
+                style={{ borderColor: '#DEDA00', color: '#DEDA00' }}
               >
                 <Camera className="h-4 w-4 mr-2" />
                 Tomar Foto
@@ -389,7 +388,7 @@ const DocumentUploadForm = () => {
                     
                     {/* Fotos capturadas */}
                     {capturedFiles.map((file, index) => (
-                      <div key={`capture-${index}`} className="flex items-center justify-between text-sm text-gray-600 bg-green-50 p-2 rounded">
+                      <div key={`capture-${index}`} className="flex items-center justify-between text-sm text-gray-600 bg-yellow-50 p-2 rounded">
                         <span>📷 {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
                         <Button
                           type="button"
@@ -411,13 +410,13 @@ const DocumentUploadForm = () => {
           {/* Botón de Envío */}
           <Button 
             type="submit" 
-            className="w-full text-white hover:opacity-90"
-            style={{ backgroundColor: '#28AE7A' }}
+            className="w-full text-black hover:opacity-90"
+            style={{ backgroundColor: '#DEDA00' }}
             disabled={isLoading}
           >
             {isLoading ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-2 border-black border-t-transparent mr-2"></div>
                 Enviando a Google Drive...
               </>
             ) : (
