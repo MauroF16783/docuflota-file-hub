@@ -222,7 +222,7 @@ const DocumentUploadForm = () => {
   };
 
   return (
-    <Card className="max-w-2xl mx-auto">
+    <Card className="max-w-2xl mx-auto border-2 border-gray-300 shadow-lg">
       <CardHeader>
         <CardTitle className="flex items-center space-x-2">
           <Upload className="h-5 w-5" />
@@ -239,13 +239,13 @@ const DocumentUploadForm = () => {
               value={placaSearch}
               onChange={(e) => setPlacaSearch(e.target.value)}
               placeholder="Escriba para buscar una placa..."
-              className="mb-2"
+              className="mb-2 border-2 border-gray-400 focus:border-blue-500"
             />
             {loadingVehiculos ? (
               <div className="text-sm text-gray-500">Cargando vehículos...</div>
             ) : (
               <Select value={selectedPlaca} onValueChange={handlePlacaSelect}>
-                <SelectTrigger>
+                <SelectTrigger className="border-2 border-gray-400 focus:border-blue-500">
                   <SelectValue placeholder="Seleccione una placa..." />
                 </SelectTrigger>
                 <SelectContent>
@@ -273,7 +273,7 @@ const DocumentUploadForm = () => {
                 <div className="text-sm text-gray-500">Cargando tipos de documentos...</div>
               ) : (
                 <Select value={documentTag} onValueChange={setDocumentTag}>
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 border-gray-400 focus:border-blue-500">
                     <SelectValue placeholder="Seleccione el tipo de documento..." />
                   </SelectTrigger>
                   <SelectContent>
@@ -296,6 +296,7 @@ const DocumentUploadForm = () => {
                 value={customTag}
                 onChange={(e) => setCustomTag(e.target.value)}
                 placeholder="Ingrese la etiqueta personalizada..."
+                className="border-2 border-gray-400 focus:border-blue-500"
               />
             </div>
           )}
@@ -310,7 +311,7 @@ const DocumentUploadForm = () => {
                 type="button"
                 variant="outline"
                 onClick={() => fileInputRef.current?.click()}
-                className="flex-1"
+                className="flex-1 border-2 border-gray-400 hover:border-gray-600"
               >
                 <FileText className="h-4 w-4 mr-2" />
                 Seleccionar Archivos
@@ -319,11 +320,10 @@ const DocumentUploadForm = () => {
                 type="button"
                 variant="outline"
                 onClick={openCamera}
-                className="flex-1"
-                style={{ borderColor: '#DEDA00', color: '#DEDA00' }}
+                className="flex-1 bg-yellow-400 hover:bg-yellow-500 border-2 border-yellow-400 text-gray-700"
               >
-                <Camera className="h-4 w-4 mr-2" />
-                Tomar Foto
+                <Camera className="h-4 w-4 mr-2 text-gray-700" />
+                <span className="text-gray-700">Tomar Foto</span>
               </Button>
             </div>
 
@@ -348,7 +348,7 @@ const DocumentUploadForm = () => {
             />
 
             {/* Zona de información */}
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+            <div className="border-2 border-dashed border-gray-400 rounded-lg p-6 text-center">
               <div className="flex justify-center space-x-4 mb-4">
                 <FileText className="h-8 w-8 text-gray-400" />
                 <Camera className="h-8 w-8 text-gray-400" />
@@ -362,7 +362,7 @@ const DocumentUploadForm = () => {
             
             {/* Lista de archivos seleccionados y fotos capturadas */}
             {(files?.length || capturedFiles.length > 0) && (
-              <Alert>
+              <Alert className="border-2 border-green-400">
                 <CheckCircle className="h-4 w-4" />
                 <AlertDescription>
                   <div className="space-y-2">
@@ -372,7 +372,7 @@ const DocumentUploadForm = () => {
                     
                     {/* Archivos seleccionados */}
                     {files && Array.from(files).map((file, index) => (
-                      <div key={`file-${index}`} className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 p-2 rounded">
+                      <div key={`file-${index}`} className="flex items-center justify-between text-sm text-gray-600 bg-gray-50 p-2 rounded border border-gray-300">
                         <span>📄 {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
                         <Button
                           type="button"
@@ -388,7 +388,7 @@ const DocumentUploadForm = () => {
                     
                     {/* Fotos capturadas */}
                     {capturedFiles.map((file, index) => (
-                      <div key={`capture-${index}`} className="flex items-center justify-between text-sm text-gray-600 bg-yellow-50 p-2 rounded">
+                      <div key={`capture-${index}`} className="flex items-center justify-between text-sm text-gray-600 bg-yellow-50 p-2 rounded border border-yellow-300">
                         <span>📷 {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</span>
                         <Button
                           type="button"
@@ -410,7 +410,7 @@ const DocumentUploadForm = () => {
           {/* Botón de Envío */}
           <Button 
             type="submit" 
-            className="w-full text-black hover:opacity-90"
+            className="w-full text-black hover:opacity-90 border-2 border-yellow-500"
             style={{ backgroundColor: '#DEDA00' }}
             disabled={isLoading}
           >
