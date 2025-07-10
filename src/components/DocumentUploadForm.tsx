@@ -37,7 +37,7 @@ const DocumentUploadForm = () => {
   );
 
   // URL del webhook actualizada
-  const N8N_WEBHOOK_URL = 'https://6b170gzb-5678.use.devtunnels.ms/webhook/555756a4-180f-4561-8dc8-f666cb0f0a11';
+  const N8N_WEBHOOK_URL = 'https://n8n-n8n.wedii5.easypanel.host/webhook-test/555756a4-180f-4561-8dc8-f666cb0f0a11';
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = e.target.files;
@@ -320,7 +320,7 @@ const DocumentUploadForm = () => {
                 type="button"
                 variant="outline"
                 onClick={openCamera}
-                className="flex-1 bg-yellow-400 hover:bg-yellow-500 border-2 border-yellow-400 text-gray-700"
+                className="flex-1 bg-yellow-500 hover:bg-yellow-600 border-2 border-yellow-500 text-gray-700"
               >
                 <Camera className="h-4 w-4 mr-2 text-gray-700" />
                 <span className="text-gray-700">Tomar Foto</span>
