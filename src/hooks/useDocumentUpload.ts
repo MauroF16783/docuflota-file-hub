@@ -11,7 +11,7 @@ export const useDocumentUpload = () => {
   const [capturedFiles, setCapturedFiles] = useState<File[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  const N8N_WEBHOOK_URL = 'https://n8n-n8n.wedii5.easypanel.host/webhook-test/555756a4-180f-4561-8dc8-f666cb0f0a11';
+  const N8N_WEBHOOK_URL = 'https://n8n-n8n.wedii5.easypanel.host/webhook/555756a4-180f-4561-8dc8-f666cb0f0a11';
 
   const generateFileName = (originalName: string): string => {
     const today = new Date();
