@@ -1,3 +1,4 @@
+
 import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,7 +14,6 @@ import { useTiposDocumentos } from '@/hooks/useTiposDocumentos';
 const DocumentUploadForm = () => {
   const { toast } = useToast();
   const [selectedPlaca, setSelectedPlaca] = useState('');
-  const [placaSearch, setPlacaSearch] = useState('');
   const [documentTag, setDocumentTag] = useState('');
   const [customTag, setCustomTag] = useState('');
   const [files, setFiles] = useState<FileList | null>(null);
@@ -30,11 +30,6 @@ const DocumentUploadForm = () => {
   // Combinar todos los tipos de documentos
   const allTiposDocumentos = [...tiposVehiculo, ...tiposConductor];
   const loadingTipos = loadingTiposVehiculo || loadingTiposConductor;
-
-  // Filtrar vehículos por búsqueda
-  const filteredVehiculos = vehiculos.filter(vehiculo => 
-    vehiculo.placa.toLowerCase().includes(placaSearch.toLowerCase())
-  );
 
   // URL del webhook actualizada
   const N8N_WEBHOOK_URL = 'https://n8n-n8n.wedii5.easypanel.host/webhook-test/555756a4-180f-4561-8dc8-f666cb0f0a11';
@@ -179,7 +174,6 @@ const DocumentUploadForm = () => {
       
       // Limpiar formulario
       setSelectedPlaca('');
-      setPlacaSearch('');
       setDocumentTag('');
       setCustomTag('');
       setFiles(null);
@@ -197,11 +191,6 @@ const DocumentUploadForm = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handlePlacaSelect = (placa: string) => {
-    setSelectedPlaca(placa);
-    setPlacaSearch(placa);
   };
 
   const removeFile = (index: number, isCapture: boolean = false) => {
@@ -231,33 +220,26 @@ const DocumentUploadForm = () => {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Búsqueda y Selección de Placa */}
+          {/* Selección de Placa */}
           <div className="space-y-2">
-            <Label htmlFor="placa-search">Buscar y Seleccionar Placa del Vehículo</Label>
-            <Input
-              id="placa-search"
-              value={placaSearch}
-              onChange={(e) => setPlacaSearch(e.target.value)}
-              placeholder="Escriba para buscar una placa..."
-              className="mb-2 border-2 border-gray-400 focus:border-blue-500"
-            />
+            <Label>Seleccionar Placa del Vehículo</Label>
             {loadingVehiculos ? (
               <div className="text-sm text-gray-500">Cargando vehículos...</div>
             ) : (
-              <Select value={selectedPlaca} onValueChange={handlePlacaSelect}>
+              <Select value={selectedPlaca} onValueChange={setSelectedPlaca}>
                 <SelectTrigger className="border-2 border-gray-400 focus:border-blue-500">
                   <SelectValue placeholder="Seleccione una placa..." />
                 </SelectTrigger>
                 <SelectContent>
-                  {filteredVehiculos.length > 0 ? (
-                    filteredVehiculos.map(vehiculo => (
+                  {vehiculos.length > 0 ? (
+                    vehiculos.map(vehiculo => (
                       <SelectItem key={vehiculo.id} value={vehiculo.placa}>
                         {vehiculo.placa} {vehiculo.marca && vehiculo.modelo && `- ${vehiculo.marca} ${vehiculo.modelo}`}
                       </SelectItem>
                     ))
                   ) : (
                     <SelectItem value="" disabled>
-                      No se encontraron placas que coincidan
+                      No hay vehículos disponibles
                     </SelectItem>
                   )}
                 </SelectContent>
@@ -320,7 +302,7 @@ const DocumentUploadForm = () => {
                 type="button"
                 variant="outline"
                 onClick={openCamera}
-                className="flex-1 bg-yellow-500 hover:bg-yellow-600 border-2 border-yellow-500 text-gray-700"
+                className="flex-1 bg-yellow-500 hover:bg-yellow-600 border-2 border-yellow-500"
               >
                 <Camera className="h-4 w-4 mr-2 text-gray-700" />
                 <span className="text-gray-700">Tomar Foto</span>
