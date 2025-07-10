@@ -46,9 +46,9 @@ export const FileUploadSection = ({
   };
 
   const handleCameraCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const capturedFiles = e.target.files;
-    if (capturedFiles) {
-      const newFiles = Array.from(capturedFiles);
+    const capturedFilesList = e.target.files;
+    if (capturedFilesList) {
+      const newFiles = Array.from(capturedFilesList);
       onCapturedFilesChange([...capturedFiles, ...newFiles]);
       
       toast({
