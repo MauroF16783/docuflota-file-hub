@@ -35,7 +35,7 @@ export const DocumentTypeSelector = ({
           <div className="text-sm text-gray-500">Cargando tipos de documentos...</div>
         ) : (
           <Select value={documentTag} onValueChange={onDocumentTagChange}>
-            <SelectTrigger className="border-2 border-gray-400 focus:border-blue-500">
+            <SelectTrigger className="border-2 border-gray-400 focus:border-blue-500 text-white [&>span]:text-white">
               <SelectValue placeholder="Seleccione el tipo de documento..." />
             </SelectTrigger>
             <SelectContent>
@@ -56,7 +56,7 @@ export const DocumentTypeSelector = ({
             value={customTag}
             onChange={(e) => onCustomTagChange(e.target.value)}
             placeholder="Ingrese la etiqueta personalizada..."
-            className="border-2 border-gray-400 focus:border-blue-500"
+            className="border-2 border-gray-400 focus:border-blue-500 text-white placeholder:text-white"
           />
         </div>
       )}

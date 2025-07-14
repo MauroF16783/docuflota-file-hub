@@ -18,8 +18,8 @@ export const VehicleSelector = ({ selectedPlaca, onPlacaChange }: VehicleSelecto
         <div className="text-sm text-white">Cargando vehículos...</div>
       ) : (
         <Select value={selectedPlaca} onValueChange={onPlacaChange}>
-          <SelectTrigger className="border-2 border-gray-400 focus:border-blue-500">
-            <SelectValue placeholder="Seleccione una placa..." className="text-white placeholder:text-white" />
+          <SelectTrigger className="border-2 border-gray-400 focus:border-blue-500 text-white [&>span]:text-white">
+            <SelectValue placeholder="Seleccione una placa..." />
           </SelectTrigger>
           <SelectContent>
             {vehiculos.length > 0 ? (
