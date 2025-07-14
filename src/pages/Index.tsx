@@ -10,7 +10,7 @@ const Index = () => {
   const [currentView, setCurrentView] = useState<'upload' | 'admin'>('upload');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-yellow-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-white shadow-sm border-b">
         <div className="max-w-4xl mx-auto px-4 sm:px-6">
