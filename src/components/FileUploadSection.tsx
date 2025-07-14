@@ -73,7 +73,7 @@ export const FileUploadSection = ({
 
   return (
     <div className="space-y-4">
-      <Label className="text-white">Adjuntar Documentos</Label>
+      <Label>Adjuntar Documentos</Label>
       
       <div className="flex flex-col sm:flex-row gap-2">
         <Button

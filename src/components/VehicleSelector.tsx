@@ -13,7 +13,7 @@ export const VehicleSelector = ({ selectedPlaca, onPlacaChange }: VehicleSelecto
 
   return (
     <div className="space-y-2">
-      <Label className="text-white">Seleccionar Placa del Vehículo</Label>
+      <Label>Seleccionar Placa del Vehículo</Label>
       {loadingVehiculos ? (
         <div className="text-sm text-white">Cargando vehículos...</div>
       ) : (
