@@ -13,9 +13,9 @@ export const VehicleSelector = ({ selectedPlaca, onPlacaChange }: VehicleSelecto
 
   return (
     <div className="space-y-2">
-      <Label>Seleccionar Placa del Vehículo</Label>
+      <Label className="text-white">Seleccionar Placa del Vehículo</Label>
       {loadingVehiculos ? (
-        <div className="text-sm text-gray-500">Cargando vehículos...</div>
+        <div className="text-sm text-white">Cargando vehículos...</div>
       ) : (
         <Select value={selectedPlaca} onValueChange={onPlacaChange}>
           <SelectTrigger className="border-2 border-gray-400 focus:border-blue-500">

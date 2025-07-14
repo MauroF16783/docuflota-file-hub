@@ -73,7 +73,7 @@ export const FileUploadSection = ({
 
   return (
     <div className="space-y-4">
-      <Label>Adjuntar Documentos</Label>
+      <Label className="text-white">Adjuntar Documentos</Label>
       
       <div className="flex flex-col sm:flex-row gap-2">
         <Button
@@ -119,7 +119,7 @@ export const FileUploadSection = ({
           <FileText className="h-8 w-8 text-gray-400" />
           <Camera className="h-8 w-8 text-gray-400" />
         </div>
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-white">
           Seleccione archivos desde su dispositivo o tome fotos con la cámara
           <br />
           <span className="text-xs">JPG, PNG, PDF - Múltiples archivos permitidos</span>
