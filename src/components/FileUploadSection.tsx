@@ -80,9 +80,9 @@ export const FileUploadSection = ({
           type="button"
           variant="outline"
           onClick={() => fileInputRef.current?.click()}
-          className="flex-1 border-2 border-gray-400 hover:border-gray-600"
+          className="flex-1 border-2 border-gray-400 hover:border-gray-600 text-white"
         >
-          <FileText className="h-4 w-4 mr-2" />
+          <FileText className="h-4 w-4 mr-2 text-white" />
           Seleccionar Archivos
         </Button>
         <Button
@@ -119,10 +119,10 @@ export const FileUploadSection = ({
           <FileText className="h-8 w-8 text-gray-400" />
           <Camera className="h-8 w-8 text-gray-400" />
         </div>
-        <p className="text-sm text-white">
+        <p className="text-sm text-gray-400">
           Seleccione archivos desde su dispositivo o tome fotos con la cámara
           <br />
-          <span className="text-xs">JPG, PNG, PDF - Múltiples archivos permitidos</span>
+          <span className="text-xs text-gray-500">JPG, PNG, PDF - Múltiples archivos permitidos</span>
         </p>
       </div>
       
